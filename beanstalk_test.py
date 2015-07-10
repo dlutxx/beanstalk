@@ -105,13 +105,13 @@ class BeanstalkClientTest(unittest.TestCase):
 
     def test_stats_job(self):
         job = self.bc.put('data')
-        self.assertIsInstance(self.bc.stats_job(job.id), str)
+        self.assertIsInstance(self.bc.stats_job(job.id), dict)
 
     def test_stats_tube(self):
-        self.assertIsInstance(self.bc.stats_tube('test'), str)
+        self.assertIsInstance(self.bc.stats_tube('test'), dict)
 
     def test_stats(self):
-        self.assertIsInstance(self.bc.stats(), str)
+        self.assertIsInstance(self.bc.stats(), dict)
 
     def test_list_tubes(self):
         ret = self.bc.list_tubes()

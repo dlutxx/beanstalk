@@ -227,17 +227,26 @@ class Client(object):
     def kick_job(self, jid):
         self._cmd(('kick-job', jid), 'KICKED', 'NOT_FOUND')
 
+    def _extra_stats_info(self, size):
+        size = int(size)
+        data = self.read_data(size).strip().split('\n')
+        info = {}
+        for line in data[1:]:
+            k, v = line.split(': ', 1)
+            info[k] = v
+        return info
+
     def stats_job(self, jid):
         ret = self._cmd(('stats-job', jid), 'OK', 'NOT_FOUND')
-        return self.read_data(int(ret[1]))
+        return self._extra_stats_info(ret[1])
 
     def stats_tube(self, tube):
         ret = self._cmd(('stats-tube', tube), 'OK', 'NOT_FOUND')
-        return self.read_data(int(ret[1]))
+        return self._extra_stats_info(ret[1])
 
     def stats(self):
         ret = self._cmd(('stats',), 'OK')
-        return self.read_data(int(ret[1]))
+        return self._extra_stats_info(ret[1])
 
     def _parse_tube_list(self, yaml):
         rows = yaml.strip().split('\n')[1:]
