@@ -1,4 +1,5 @@
-#encoding: utf8
+# encoding: utf8
+# https://github.com/kr/beanstalkd/blob/master/doc/protocol.md
 
 import socket
 
@@ -81,14 +82,18 @@ class Job(object):
     def delete(self):
         return self.client.delete(self.id)
 
-    def release(self):
-        return self.client.release(self.id)
+    def release(self, pri=DEFAULT_PRI, delay=DEFAULT_DELAY):
+        return self.client.release(self.id, pri, delay)
 
 
 class Client(object):
 
     def __init__(self, host='localhost', port=11300):
         self.conn = Connection(host, port)
+        self.conn.connect()
+
+    def reconnect(self):
+        self.conn.close()
         self.conn.connect()
 
     def connect(self):
@@ -102,10 +107,10 @@ class Client(object):
         self.conn.readbytes(2)
         return data
 
-    def _ensure_tuple(self, obj):
-        if type(obj) is tuple:
-            return obj
-        return (obj,)
+    def _match(self, fact, expect):
+        if isinstance(expect, tuple):
+            return fact in expect
+        return fact == expect
 
     def _cmd(self, args, expected_suc, expected_err=()):
         req = ' '.join(map(str, args)) + LINESEP
@@ -113,9 +118,9 @@ class Client(object):
         line = self.conn.readline().strip()
         res = line.split()
 
-        if res[0] in self._ensure_tuple(expected_suc):
+        if self._match(res[0], expected_suc):
             return res
-        elif res[0] in self._ensure_tuple(expected_err):
+        elif self._match(res[0], expected_err):
             raise CommandFailed(line)
 
         raise BadResponse(line) 
